@@ -5,6 +5,37 @@ from scipy.special import ive
 import numpy as np
 import torch.distributed as dist
 
+
+def miller_recurrence_NEW(nu, x):
+    # 初始化
+    I_n = torch.ones(1, dtype=torch.float64).cuda()
+    I_n1 = torch.zeros(1, dtype=torch.float64).cuda()
+
+    # 估计数组
+    Estimat_n = [None, None]
+    scale = 0
+
+    # 递推计算
+    for i in range(2*nu, 0, -1):
+        I_n_tem, I_n1_tem = 2*i/x*I_n + I_n1, I_n
+        if torch.isinf(I_n_tem).any():
+            # 处理无穷大情况，可能需要更复杂的逻辑
+            pass  # 这里可以添加更详细的处理逻辑
+        I_n, I_n1 = I_n_tem, I_n1_tem
+
+        if i == nu or i == nu + 1:
+            Estimat_n[i - nu] = I_n1
+
+    # 计算ive0（修正的Bessel函数I_0(x)的自然指数形式）
+    ive0 = torch.special.i0e(x.cuda())
+
+    # 最终计算
+    for i in range(2):
+        if Estimat_n[i] is not None:
+            Estimat_n[i] = torch.log(ive0) + torch.log(Estimat_n[i]) - torch.log(I_n) + scale  # 注意：这里的scale可能需要更精细的管理
+
+    return Estimat_n[0], Estimat_n[1]
+
 def miller_recurrence(nu, x):
     I_n = torch.ones(1, dtype=torch.float64).cuda()
     I_n1 = torch.zeros(1, dtype=torch.float64).cuda()
