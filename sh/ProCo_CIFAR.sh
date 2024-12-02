@@ -1,6 +1,6 @@
 PORT=$(($RANDOM % 1000 + 10000))
 
-dataset=cifar100 # cifar100 or cifar10
+dataset=cifar10 # cifar100 or cifar10
 imb=0.02     #0.01 0.02 or 0.1
 lr=0.3
 batch_size=256
